@@ -1,0 +1,30 @@
+Package: approxcdf
+Type: Package
+Title: approxcdf
+Version: 0.0.1
+Authors@R: c(
+  person(given="David", family="Cortes", role=c("aut", "cre", "cph"),
+         email="david.cortes.rivera@gmail.com"),
+  person(given="Alan", family="Genz", role="cph",
+         comment="Copyright holder of original TVPACK library"),
+  person(given="Zvi", family="Drezner", role="cph",
+         comment="Copyright holder of original 2D and 3D fast CDF functions"),
+  person(given="Netlib", role="cph",
+         comment="Copyright holder of original Cephes library")
+  )
+Maintainer: David Cortes <david.cortes.rivera@gmail.com>
+URL: https://github.com/david-cortes/approxcdf
+BugReports: https://github.com/david-cortes/approxcdf/issues
+Description: Fast approximations for the cumulative distribution function (CDF) of the
+  multivariate normal (MVN) distribution, based on the two-variable bivariate screening (TVBS)
+  method from Bhat (2018) <doi:10.1016/j.trb.2018.01.011> for five and higher dimensions
+  with some small improvements such as employing the variable reordering technique from
+  Gibson, Glasbey, Elton (1994) <doi:10.1142/9789814533751>, matrix regularization, and others;
+  and based on the more exact methods from Plackett (1954) <doi:doi.org/10.2307/2332716>,
+  Gassmann (2003) <doi:10.1198/1061860032283>, Drezner, Wesolowsky (1990) <doi:10.1080/00949659008811236>,
+  Drezner (1994) <doi:10.1090/S0025-5718-1994-1185242-8>, Tsay, Ke (2021) <doi:10.1080/03610918.2021.1884718>,
+  and Genz (2004) <doi:10.1023/B:STCO.0000035304.20635.31> for four and lower dimensions.
+Suggests: testthat, mvtnorm
+License: BSD_3_clause + file LICENSE
+RoxygenNote: 7.2.0
+NeedsCompilation: yes

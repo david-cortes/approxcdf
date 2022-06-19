@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+*.out
+*.o
+*.Rproj
+*.Rhistory
+
+# dist files
+dist/
+*.zip
+*.tar.gz
+
+MANIFEST
+.directory
+
+approxcdf/cpp_wrapper.h
+approxcdf/cpp_wrapper.cpp
+
+approxcdf.egg-info/*
+
+build/*
+deleteme/*
+
+docs/.directory
+docs/_build/*
+
+
+.Rproj.user
+test

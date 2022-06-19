@@ -1,0 +1,5 @@
+Sys.setenv("R_TESTS" = "")
+library(testthat)
+library(approxcdf)
+library(mvtnorm)
+test_check("approxcdf")

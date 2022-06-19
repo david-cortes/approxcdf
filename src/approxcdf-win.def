@@ -1,0 +1,3 @@
+LIBRARY approxcdf.dll
+EXPORTS
+ R_init_approxcdf
