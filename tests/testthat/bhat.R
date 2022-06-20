@@ -1,5 +1,4 @@
 library("testthat")
-library("mvnorm")
 library("mvtnorm")
 context("Test Bhar's CDF for 4D")
 
