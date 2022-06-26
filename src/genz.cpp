@@ -95,7 +95,9 @@ double norm_lcdf_2d(double x1, double x2, double rho)
             #else
             switch (gl_dim) {
                 case GL6: {
+                    #ifndef _MSC_VER
                     #pragma omp simd
+                    #endif
                     for (int ix = 0; ix < 4; ix++) {
                         sn1 = std::sin(asr_half * (1. + GL8_x[ix]));
                         sn2 = std::sin(asr_half * (1. - GL8_x[ix]));
@@ -107,7 +109,9 @@ double norm_lcdf_2d(double x1, double x2, double rho)
                     break;
                 }
                 case GL12: {
+                    #ifndef _MSC_VER
                     #pragma omp simd
+                    #endif
                     for (int ix = 0; ix < 8; ix++) {
                         sn1 = std::sin(asr_half * (1. + GL16_x[ix]));
                         sn2 = std::sin(asr_half * (1. - GL16_x[ix]));
@@ -119,7 +123,9 @@ double norm_lcdf_2d(double x1, double x2, double rho)
                     break;
                 }
                 case GL20: {
+                    #ifndef _MSC_VER
                     #pragma omp simd
+                    #endif
                     for (int ix = 0; ix < 12; ix++) {
                         sn1 = std::sin(asr_half * (1. + GL24_x[ix]));
                         sn2 = std::sin(asr_half * (1. - GL24_x[ix]));
@@ -185,7 +191,9 @@ double norm_lcdf_2d(double x1, double x2, double rho)
                 }
             }
             #else
+            #ifndef _MSC_VER
             #pragma omp simd
+            #endif
             for (int ix = 0; ix < 12; ix++) {
                 temp = a * (1. + GL24_x[ix]);
                 xs = temp * temp;

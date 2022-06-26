@@ -138,6 +138,9 @@ double norm_cdf_tvbs
 #ifdef __GNUC__
 #   define likely(x) __builtin_expect((bool)(x), true)
 #   define unlikely(x) __builtin_expect((bool)(x), false)
+#else
+#   define likely(x) (x)
+#   define unlikely(x) (x)
 #endif
 
 #ifndef FCONE

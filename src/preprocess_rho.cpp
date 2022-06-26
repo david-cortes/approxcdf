@@ -231,7 +231,9 @@ void copy_and_standardize
         for (int ix = 0; ix < n; ix++) {
             buffer_sdtdev[ix] = std::sqrt(rho_out[ix*(n+1)]);
         }
+        #ifndef _MSC_VER
         #pragma omp simd
+        #endif
         for (int ix = 0; ix < n; ix++) {
             x_out[ix] /= buffer_sdtdev[ix];
         }

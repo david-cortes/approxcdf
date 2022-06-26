@@ -66,7 +66,9 @@ double norm_lcdf_2d_fast(double x1, double x2, double rho)
             r2 = std::sqrt(1. - rr);
             out -= GL5_w_div4pi[2] * std::exp(-x5/rr) * (std::exp(-x3/(1. + r2))/r2/x7 - 1.- aa*rr);
             #else
+            #ifndef _MSC_VER
             #pragma omp simd
+            #endif
             for (int ix = 0; ix < 4; ix++) {
                 r1 = r3 * GL8_xp[ix];
                 rr = r1*r1;
@@ -113,7 +115,9 @@ double norm_lcdf_2d_fast(double x1, double x2, double rho)
         rr2 = 1. - r1*r1;
         out += GL5_w_div4pi[2] * std::exp((r1*x3 - x12) / rr2) / std::sqrt(rr2);
         #else
+        #ifndef _MSC_VER
         #pragma omp simd
+        #endif
         for (int ix = 0; ix < 4; ix++) {
             r1 = rho * GL8_xp[ix];
             rr2 = 1. - r1*r1;
@@ -194,7 +198,9 @@ double norm_cdf_3d_fast(double x1, double x2, double x3, double rho12, double rh
     double nhp1, nhp2;
 
     double correction = 0;
+    #ifndef _MSC_VER
     #pragma omp simd
+    #endif
     for (int ix = 0; ix < 16; ix++) {
         rr12 = rho12 * GL32_xp[ix];
         rr13 = rho13 * GL32_xp[ix];
