@@ -227,7 +227,8 @@ void copy_and_standardize
     }
 
     if (!is_standardized) {
-        cblas_daxpy(n, -1., mu, 1, x_out, 1);
+        if (mu)
+            cblas_daxpy(n, -1., mu, 1, x_out, 1);
         for (int ix = 0; ix < n; ix++) {
             buffer_sdtdev[ix] = std::sqrt(rho_out[ix*(n+1)]);
         }
