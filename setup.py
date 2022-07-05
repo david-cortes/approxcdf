@@ -52,14 +52,25 @@ class build_ext_subclass( build_ext ):
         if self.test_supports_compile_arg(arg_fnme):
             for e in self.extensions:
                 e.extra_compile_args.append(arg_fnme)
-                e.extra_link_args.append(arg_fnme)
 
     def add_no_trapping_math(self):
         arg_fntm = "-fno-trapping-math"
         if self.test_supports_compile_arg(arg_fntm):
             for e in self.extensions:
                 e.extra_compile_args.append(arg_fntm)
-                e.extra_link_args.append(arg_fntm)
+
+    def set_cxxstd(self):
+        arg_std17 = "-std=c++17"
+        arg_std14 = "-std=gnu++14"
+        if self.test_supports_compile_arg(arg_std17):
+            for e in self.extensions:
+                e.extra_compile_args.append(arg_std17)
+        elif self.test_supports_compile_arg(arg_std14):
+            for e in self.extensions:
+                e.extra_compile_args.append(arg_std14)
+        else:
+            print("C++17 standard not supported. Package might fail to compile.")
+
 
     def add_openmp_linkage(self):
         arg_omp1 = "-fopenmp"
