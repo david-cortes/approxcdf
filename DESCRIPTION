@@ -16,7 +16,7 @@ Maintainer: David Cortes <david.cortes.rivera@gmail.com>
 URL: https://github.com/david-cortes/approxcdf
 BugReports: https://github.com/david-cortes/approxcdf/issues
 Description: Fast approximations for the cumulative distribution function (CDF) of the
-  multivariate normal (MVN) distribution, based on the two-variable bivariate screening (TVBS)
+  multivariate normal (MVN) distribution, based on the two-variate bivariate screening (TVBS)
   method from Bhat (2018) <doi:10.1016/j.trb.2018.01.011> for five and higher dimensions
   with some small improvements such as employing the variable reordering technique from
   Gibson, Glasbey, Elton (1994) <doi:10.1142/9789814533751>, matrix regularization, and others;

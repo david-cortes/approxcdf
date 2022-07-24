@@ -39,7 +39,7 @@ pip install git+https://www.github.com/david-cortes/approxcdf.git
 (Requires BLAS and LAPACK)
 
 ```
-git clone --recursive https://www.github.com/david-cortes/approxcdf.git
+git clone https://www.github.com/david-cortes/approxcdf.git
 cd approxcdf
 mkdir build
 cd build
