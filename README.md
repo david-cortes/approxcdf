@@ -109,12 +109,15 @@ int main()
       0.85, -0.70,    1,   0.65,
       0.75, -0.80,  0.65,    1
     };
+    bool is_standardized = true;
+    bool logp = false; /* log-probability */
     double prob = norm_cdf(
         b,
         S, n,
         NULL,
         n,
-        true,
+        is_standardized,
+        logp,
         NULL
     );
     printf("Obtained estimate for Plackett's example: %.6f\n", prob);
