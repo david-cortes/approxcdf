@@ -42,6 +42,8 @@ double norm_pdf_1d(double x);
 APPROXCDF_EXPORTED
 double norm_cdf_1d(double x);
 double norm_lcdf_1d(double x);
+double norm_logpdf_1d(double x);
+double norm_logcdf_1d(double a);
 
 /* drezner.cpp */
 APPROXCDF_EXPORTED
@@ -71,6 +73,11 @@ double norm_cdf_4d_pg(const double x[4], const double rho[6]);
 
 /* bhat.cpp */
 double norm_cdf_4d_bhat(const double x[4], const double rho[6]);
+double norm_logcdf_4d(const double x[4], const double rho[6]);
+
+/* bhat_lowdim.cpp */
+double norm_logcdf_2d(double x1, double x2, double rho);
+double norm_logcdf_3d(double x1, double x2, double x3, double rho12, double rho13, double rho23);
 
 /* gge.cpp */
 void gge_reorder(double *restrict x, double *restrict R, int n, double *restrict Chol, double *restrict Emu);
@@ -79,7 +86,7 @@ void gge_reorder(double *restrict x, double *restrict R, int n, double *restrict
 void preprocess_rho(double *restrict R, const int ld_R, const int n, double *restrict x,
                     int &restrict pos_st, double &restrict p_independent,
                     int &restrict size_block1, int &restrict size_block2,
-                    const int min_n_check_to_check);
+                    const int min_n_check_to_check, const bool logp);
 void copy_and_standardize
 (
     const double *restrict x,
@@ -121,6 +128,7 @@ double norm_cdf_tvbs
     const double mu[], /* ignored when is_standardized=false */
     const int n,
     const bool is_standardized,
+    const bool logp,
     double *restrict buffer /* dim: 6*n^2 + 6*n - 8 */
 );
 

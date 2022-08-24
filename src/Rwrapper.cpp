@@ -3,19 +3,20 @@
 extern "C" {
 
 /* main function from this package */
-SEXP R_norm_cdf_tvbs(SEXP x, SEXP Sigma, SEXP mu, SEXP is_standardized)
+SEXP R_norm_cdf_tvbs(SEXP x, SEXP Sigma, SEXP mu, SEXP is_standardized, SEXP logp)
 {
     const int n = Rf_xlength(x);
     double *mu_ptr = NULL;
     if (!Rf_isNull(mu)) {
         mu_ptr = REAL(mu);
     }
-    double out =  norm_cdf_tvbs(
+    double out = norm_cdf_tvbs(
         REAL(x),
         REAL(Sigma), n,
         mu_ptr,
         n,
         (bool) Rf_asLogical(is_standardized),
+        (bool) Rf_asLogical(logp),
         NULL
     );
     return Rf_ScalarReal(out);
@@ -179,7 +180,7 @@ SEXP R_inverse_4by4_loweronly(SEXP x_)
 #endif /* ifdef RUN_TESTS */
 
 static const R_CallMethodDef callMethods [] = {
-    {"R_norm_cdf_tvbs", (DL_FUNC) &R_norm_cdf_tvbs, 4},
+    {"R_norm_cdf_tvbs", (DL_FUNC) &R_norm_cdf_tvbs, 5},
     {"R_norm_cdf_2d_vfast", (DL_FUNC) &R_norm_cdf_2d_vfast, 3},
     {"R_norm_cdf_4d_pg", (DL_FUNC) &R_norm_cdf_4d_pg, 2},
     {"R_norm_cdf_4d_pg7", (DL_FUNC) &R_norm_cdf_4d_pg7, 2},

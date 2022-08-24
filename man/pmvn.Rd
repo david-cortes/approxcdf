@@ -4,7 +4,7 @@
 \alias{pmvn}
 \title{Cumulative Distribution Function for Multivariate Normal Distribution}
 \usage{
-pmvn(q, Cov, mean = NULL, is_standardized = FALSE)
+pmvn(q, Cov, mean = NULL, is_standardized = FALSE, log.p = FALSE)
 }
 \arguments{
 \item{q}{Thresholds for the calculation (upper bound on the variables for which the CDF is to be calculated).}
@@ -17,6 +17,14 @@ Cannot pass it when using `is_standardized=TRUE`.}
 
 \item{is_standardized}{Whether the parameters correspond to a standardized MVN distribution - that is, the
 means for all variables are zero, and `Cov` has only ones on its diagonal.}
+
+\item{log.p}{Whether to return the logarithm of the probability instead of the probability itself.
+This is helpful when dealing with very small probabilities, since they
+might get rounded down to exactly zero in their raw form or not be representable
+very exactly as float64, while the logarithm is likely still well defined.
+Note that it will use slightly different methods here (all calculations, even
+for 2D and 3D will use uni/bi-variate screening methods) and thus exponentiating
+this result might not match exactly with the result obtained with `log.p=FALSE`.}
 }
 \value{
 The (approximate) probability that each variable drawn from the MVN distribution parameterized by

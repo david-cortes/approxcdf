@@ -4,7 +4,7 @@ from typing import Optional
 
 __all__ = ["mvn_cdf", "bvn_cdf", "qvn_cdf"]
 
-def mvn_cdf(b: np.array, Cov: np.array, mean: Optional[np.array] = None, is_standardized: bool = False):
+def mvn_cdf(b: np.array, Cov: np.array, mean: Optional[np.array] = None, is_standardized: bool = False, logp: bool = False):
     """
     Cumulative Distribution Function for Multivariate Normal Distribution
 
@@ -65,6 +65,14 @@ def mvn_cdf(b: np.array, Cov: np.array, mean: Optional[np.array] = None, is_stan
     is_standardized : bool
         Whether the parameters correspond to a standardized MVN distribution - that is, the
         means for all variables are zero, and ``Cov`` has only ones on its diagonal.
+    logp : bool
+        Whether to return the logarithm of the probability instead of the probability itself.
+        This is helpful when dealing with very small probabilities, since they
+        might get rounded down to exactly zero in their raw form or not be representable
+        very exactly as float64, while the logarithm is likely still well defined.
+        Note that it will use slightly different methods here (all calculations, even
+        for 2D and 3D will use uni/bi-variate screening methods) and thus exponentiating
+        this result might not match exactly with the result obtained with ``logp=False``.
 
     Returns
     -------
@@ -118,7 +126,7 @@ def mvn_cdf(b: np.array, Cov: np.array, mean: Optional[np.array] = None, is_stan
     if np.any(np.isnan(b)) or np.any(np.isnan(Cov)):
         raise ValueError("Cannot pass missing values in parameters.")
 
-    return _cpp_wrapper.py_norm_cdf_tvbs(b, mean, Cov, ld_Cov, is_standardized)
+    return _cpp_wrapper.py_norm_cdf_tvbs(b, mean, Cov, ld_Cov, is_standardized, logp)
 
 
 def bvn_cdf(b1: float, b2: float, rho: float):

@@ -18,9 +18,9 @@
 void preprocess_rho(double *restrict R, const int ld_R, const int n, double *restrict x,
                     int &restrict pos_st, double &restrict p_independent,
                     int &restrict size_block1, int &restrict size_block2,
-                    const int min_n_check_to_check)
+                    const int min_n_check_to_check, const bool logp)
 {
-    p_independent = 1.;
+    p_independent = logp? 0. : 1.;
     size_block1 = n;
     size_block2 = 0;
     pos_st = 0;
@@ -51,9 +51,14 @@ void preprocess_rho(double *restrict R, const int ld_R, const int n, double *res
             row_zeros += rho_is_zero(R[col + row*ld_R]);
         }
         if (row_zeros >= n-pos_st-1) {
-            p_independent *= norm_cdf_1d(x[row]);
-            if (p_independent <= 0.) {
-                return;
+            if (likely(!logp)) {
+                p_independent *= norm_cdf_1d(x[row]);
+                if (p_independent <= 0.) {
+                    return;
+                }
+            }
+            else {
+                p_independent += norm_logcdf_1d(x[row]);
             }
             swap_entries_sq_matrix(x, R, ld_R, n, pos_st, row);
             pos_st++;

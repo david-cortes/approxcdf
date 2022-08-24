@@ -413,3 +413,104 @@ double norm_cdf_4d_bhat(const double x[4], const double rho[6])
     #endif
 }
 
+double norm_logcdf_4d_internal(const double x[4], const double rho[6])
+{
+    double mu[2];
+    double Sigma[3];
+    bv_trunc_std4d_loweronly(rho, x, mu, Sigma);
+
+    double p1 = norm_logcdf_1d((x[2] - mu[0]) / std::sqrt(Sigma[0]));
+    double p2 = norm_logcdf_2d(
+        (x[2] - mu[0]) / std::sqrt(Sigma[0]),
+        (x[3] - mu[1]) / std::sqrt(Sigma[1]),
+        Sigma[2] / (std::sqrt(Sigma[0]) * std::sqrt(Sigma[1]))
+    );
+    double p3 = norm_logcdf_3d(x[0], x[1], x[2], rho[0], rho[1], rho[3]);
+    return p2 - p1 + p3;
+}
+
+double norm_logcdf_4d(const double x[4], const double rho[6])
+{
+    const double rho_sq[] = {
+        rho[0]*rho[0], rho[1]*rho[1], rho[2]*rho[2], rho[3]*rho[3], rho[4]*rho[4], rho[5]*rho[5]
+    };
+    if (unlikely(rho_sq[1] + rho_sq[2] + rho_sq[3] + rho_sq[4] < EPS_BLOCK)) {
+        return norm_logcdf_2d(x[2], x[3], rho[5]) + norm_logcdf_2d(x[0], x[1], rho[0]);
+    }
+    else if (unlikely(rho_sq[0] + rho_sq[1] + rho_sq[4] + rho_sq[5] < EPS_BLOCK)) {
+        return norm_logcdf_2d(x[0], x[3], rho[2]) + norm_logcdf_2d(x[2], x[1], rho[3]);
+    }
+    else if (unlikely(rho_sq[0] + rho_sq[2] + rho_sq[3] + rho_sq[5] < EPS_BLOCK)) {
+        return norm_logcdf_2d(x[2], x[0], rho[1]) + norm_logcdf_2d(x[3], x[1], rho[4]);
+    }
+    else if (unlikely(rho_sq[0] + rho_sq[1] + rho_sq[2] < EPS_BLOCK)) {
+        return norm_logcdf_1d(x[0]) + norm_logcdf_3d(x[1], x[2], x[3], rho[3], rho[4], rho[5]);
+    }
+    else if (unlikely(rho_sq[0] + rho_sq[3] + rho_sq[4] < EPS_BLOCK)) {
+        return norm_logcdf_1d(x[1]) + norm_logcdf_3d(x[0], x[2], x[3], rho[1], rho[2], rho[5]);
+    }
+    else if (unlikely(rho_sq[1] + rho_sq[3] + rho_sq[5] < EPS_BLOCK)) {
+        return norm_logcdf_1d(x[2]) + norm_logcdf_3d(x[0], x[1], x[3], rho[0], rho[2], rho[4]);
+    }
+    else if (unlikely(rho_sq[2] + rho_sq[4] + rho_sq[5] < EPS_BLOCK)) {
+        return norm_logcdf_1d(x[3]) + norm_logcdf_3d(x[0], x[1], x[2], rho[0], rho[1], rho[3]);
+    }
+    /* If rho(1,2):+1 -> x1 ==  x2
+       If rho(1,2):-1 -> x1 == -x2 */
+    else if (unlikely(std::fabs(rho[0]) >= HIGH_RHO)) {
+        if (x[0] <= rho[0] * x[1]) {
+            return norm_logcdf_3d(x[0], x[2], x[3], rho[1], rho[2], rho[5]);
+        }
+        else {
+            return norm_logcdf_3d(rho[0]*x[1], x[2], x[3], rho[3], rho[4], rho[5]);
+        }
+    }
+    else if (unlikely(std::fabs(rho[1]) >= HIGH_RHO)) {
+        if (x[0] <= rho[1] * x[2]) {
+            return norm_logcdf_3d(x[0], x[1], x[3], rho[0], rho[2], rho[4]);
+        }
+        else {
+            return norm_logcdf_3d(rho[1]*x[2], x[1], x[3], rho[3], rho[5], rho[4]);
+        }
+    }
+    else if (unlikely(std::fabs(rho[2]) >= HIGH_RHO)) {
+        if (x[0] <= rho[2] * x[3]) {
+            return norm_logcdf_3d(x[0], x[1], x[2], rho[0], rho[1], rho[3]);
+        }
+        else {
+            return norm_logcdf_3d(rho[2]*x[3], x[1], x[2], rho[4], rho[5], rho[3]);
+        }
+    }
+    else if (unlikely(std::fabs(rho[3]) >= HIGH_RHO)) {
+        if (x[1] <= rho[3] * x[2]) {
+            return norm_logcdf_3d(x[1], x[0], x[3], rho[0], rho[4], rho[2]);
+        }
+        else {
+            return norm_logcdf_3d(rho[3]*x[2], x[0], x[3], rho[1], rho[5], rho[2]);
+        }
+    }
+    else if (unlikely(std::fabs(rho[4]) >= HIGH_RHO)) {
+        if (x[1] <= rho[2] * x[3]) {
+            return norm_logcdf_3d(x[1], x[0], x[2], rho[0], rho[3], rho[1]);
+        }
+        else {
+            return norm_logcdf_3d(rho[2]*x[3], x[0], x[2], rho[2], rho[5], rho[1]);
+        }
+    }
+    else if (unlikely(std::fabs(rho[5]) >= HIGH_RHO)) {
+        if (x[2] <= rho[5] * x[3]) {
+            return norm_logcdf_3d(x[2], x[0], x[1], rho[1], rho[3], rho[0]);
+        }
+        else {
+            return norm_logcdf_3d(rho[5]*x[3], x[0], x[1], rho[2], rho[4], rho[0]);
+        }
+    }
+
+    int argsorted[] = {0, 1, 2, 3};
+    std::sort(argsorted, argsorted + 4, [&x](const int a, const int b){return x[a] < x[b];});
+    const double xpass[] = {x[argsorted[0]], x[argsorted[1]], x[argsorted[2]], x[argsorted[3]]};
+    double rhopass[6];
+    std::copy(rho, rho + 6, rhopass);
+    rearrange_tri(rhopass, argsorted);
+    return norm_logcdf_4d_internal(x, rho);
+}

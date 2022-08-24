@@ -63,10 +63,11 @@ cdef extern from "approxcdf.h":
         const double mu[],
         const int n,
         const bool is_standardized,
+        const bool logp,
         double *buffer
     )
 
-def py_norm_cdf_tvbs(np.ndarray[double, ndim=1] x, np.ndarray[double, ndim=1] mu, np.ndarray[double, ndim=2] S, int ld_S, bool is_standardized):
+def py_norm_cdf_tvbs(np.ndarray[double, ndim=1] x, np.ndarray[double, ndim=1] mu, np.ndarray[double, ndim=2] S, int ld_S, bool is_standardized, bool logp):
     cdef int n = x.shape[0]
     cdef double *ptr_mu = NULL
     if mu.shape[0]:
@@ -77,6 +78,7 @@ def py_norm_cdf_tvbs(np.ndarray[double, ndim=1] x, np.ndarray[double, ndim=1] mu
         ptr_mu,
         n,
         is_standardized,
+        logp,
         NULL
     );
 

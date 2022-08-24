@@ -10,6 +10,7 @@ double norm_cdf
     const double mu[], /* ignored when is_standardized=false */
     const int n,
     const char is_standardized,
+    const char logp,
     double buffer[] /* dim: 6*n^2 + 6*n - 8 */
 )
 {
@@ -22,6 +23,7 @@ double norm_cdf
             mu,
             n,
             is_standardized,
+            logp,
             buffer
         );
     }

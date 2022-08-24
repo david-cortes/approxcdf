@@ -26,5 +26,5 @@ Description: Fast approximations for the cumulative distribution function (CDF) 
   and Genz (2004) <doi:10.1023/B:STCO.0000035304.20635.31> for four and lower dimensions.
 Suggests: testthat, mvtnorm
 License: BSD_3_clause + file LICENSE
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 NeedsCompilation: yes

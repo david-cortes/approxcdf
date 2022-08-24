@@ -236,32 +236,6 @@ void inv4by4tri_loweronly(const double x_tri[6], double invX[3])
     }
 }
 
-/* A[ind,ind], when 'A' is represented by its upper triangle only. */
-void rearrange_tri(double x[6], int ordering[4])
-{
-    double Xfull[] = {
-        1.,    x[0],   x[1],   x[2],
-        x[0],     1.,  x[3],   x[4],
-        x[1],  x[3],     1.,   x[5],
-        x[2],  x[4],   x[5],     1.
-    };
-
-    double Xnew[16];
-    const int n = 4;
-    for (int row = 0; row < n; row++) {
-        for (int col = 0; col < n; col++) {
-            Xnew[col + row*n] = Xfull[ordering[col] + ordering[row]*n];
-        }
-    }
-
-    x[0] = Xnew[1];
-    x[1] = Xnew[2];
-    x[2] = Xnew[3];
-    x[3] = Xnew[6];
-    x[4] = Xnew[7];
-    x[5] = Xnew[11];
-}
-
 /* Assumes that rho_star takes the place of rho[5] */
 void produce_placketts_singular_matrix_coefs(const double *restrict rho, double rho_star, double *restrict coefs)
 {

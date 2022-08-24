@@ -36,6 +36,16 @@ is_standardized
       diagonal entry).
     (Value will be interpreted as boolean - i.e. a value of zero means "false",
      any value other than zero means "true").
+logp
+    Whether to return the logarithm of the probability instead of the probability
+    itself. This is helpful when dealing with very small probabilities, since they
+    might get rounded down to exactly zero in their raw form or not be representable
+    very exactly as float64, while the logarithm is likely still well defined.
+    Note that it will use slightly different methods here (all calculations, even
+    for 2D and 3D will use uni/bi-variate screening methods) and thus exponentiating
+    this result might not match exactly with the result obtained with logp=0.
+    (Value will be interpreted as boolean - i.e. a value of zero means "false",
+     any value other than zero means "true").
 buffer : dim=6*n*n + 6*n - 8
     A temporary memory buffer that will be used for intermediate steps of the
     calculation. If not passed, this memory will be allocated and deallocated
@@ -51,6 +61,7 @@ double norm_cdf
     const double mu[], /* ignored when is_standardized=false */
     const int n,
     const char is_standardized,
+    const char logp,
     double buffer[] /* dim: 6*n^2 + 6*n - 8 */
 );
 

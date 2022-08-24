@@ -77,27 +77,49 @@ double norm_cdf_nd_tvbs_internal
     double *restrict temp2, /* buffer dim: n^2 */
     double *restrict temp3, /* buffer dim: 2*(n-2) */
     double *restrict temp4, /* buffer dim: 2*(n-2) */
-    double *restrict rho_copy /* buffer dim: n^2 */
+    double *restrict rho_copy, /* buffer dim: n^2 */
+    const bool logp
 )
 {
     if (n <= 4) {
         switch (n) {
             case 1: {
-                return norm_cdf_1d(x_reordered[0]);
+                if (likely(!logp)) {
+                    return norm_cdf_1d(x_reordered[0]);
+                }
+                else {
+                    return norm_logcdf_1d(x_reordered[0]);
+                }
             }
             case 2: {
-                return norm_cdf_2d(x_reordered[0], x_reordered[1], rho_reordered[1]);
+                if (likely(!logp)) {
+                    return norm_cdf_2d(x_reordered[0], x_reordered[1], rho_reordered[1]);
+                }
+                else {
+                    return norm_logcdf_2d(x_reordered[0], x_reordered[1], rho_reordered[1]);
+                }
             }
             case 3: {
-                return norm_cdf_3d(x_reordered[0], x_reordered[1], x_reordered[2],
-                                   rho_reordered[1], rho_reordered[2], rho_reordered[5]);
+                if (likely(!logp)) {
+                    return norm_cdf_3d(x_reordered[0], x_reordered[1], x_reordered[2],
+                                       rho_reordered[1], rho_reordered[2], rho_reordered[5]);
+                }
+                else {
+                    return norm_logcdf_3d(x_reordered[0], x_reordered[1], x_reordered[2],
+                                          rho_reordered[1], rho_reordered[2], rho_reordered[5]);
+                }
             }
             case 4: {
                 const double rho_flat[] = {
                     rho_reordered[1], rho_reordered[2], rho_reordered[3],
                     rho_reordered[6], rho_reordered[7], rho_reordered[11]
                 };
-                return norm_cdf_4d_bhat(x_reordered, rho_flat);
+                if (likely(!logp)) {
+                    return norm_cdf_4d_bhat(x_reordered, rho_flat);
+                }
+                else {
+                    return norm_logcdf_4d(x_reordered, rho_flat);
+                }
             }
             default: {
                 return NAN;
@@ -110,13 +132,15 @@ double norm_cdf_nd_tvbs_internal
     preprocess_rho(rho_reordered, n, n, x_reordered,
                    pos_st, p_independent,
                    size_block1, size_block2,
-                   4);
-    if (std::isnan(p_independent) || p_independent <= 0.) {
-        return 0.;
+                   4, logp);
+    if (likely(!logp)) {
+        if (std::isnan(p_independent) || p_independent <= 0.) {
+            return 0.;
+        }
     }
     if (pos_st != 0 || size_block1 != n) {
-        double p1 = 1.;
-        double p2 = 1.;
+        double p1 = logp? 0. : 1.;
+        double p2 = logp? 0. : 1.;
 
         if (size_block1) {
             F77_CALL(dlacpy)(
@@ -135,7 +159,8 @@ double norm_cdf_nd_tvbs_internal
                 temp2,
                 temp3,
                 temp4,
-                rho_reordered
+                rho_reordered,
+                logp
             );
         }
 
@@ -158,11 +183,17 @@ double norm_cdf_nd_tvbs_internal
                 temp2,
                 temp3,
                 temp4,
-                rho_reordered
+                rho_reordered,
+                logp
             );
         }
 
-        return p1 * p2 * p_independent;
+        if (likely(!logp)) {
+            return p1 * p2 * p_independent;
+        }
+        else {
+            return p1 + p2 + p_independent;
+        }
     }
 
     /* TODO: maybe it should also offer an option for simple reordering,
@@ -177,7 +208,13 @@ double norm_cdf_nd_tvbs_internal
     
     temp1[0] = rho_reordered[1]; temp1[1] = rho_reordered[2]; temp1[2] = rho_reordered[3];
     temp1[3] = rho_reordered[2 + n]; temp1[4] = rho_reordered[3 + n]; temp1[5] = rho_reordered[3 + 2*n];
-    double cumP = norm_cdf_4d_bhat(x_reordered, temp1);
+    double cumP;
+    if (likely(!logp)) {
+        cumP = norm_cdf_4d_bhat(x_reordered, temp1);
+    }
+    else {
+        cumP = norm_logcdf_4d(x_reordered, temp1);
+    }
     int n_steps = (n / 2) - !(n & 1) - 1;
 
     double bvn_trunc_mu[2];
@@ -189,8 +226,10 @@ double norm_cdf_nd_tvbs_internal
 
     for (int step = 0; step < n_steps; step++) {
         
-        if (std::isnan(cumP) || std::isinf(cumP) || cumP <= 0.) {
-            return 0.;
+        if (likely(!logp)) {
+            if (std::isnan(cumP) || std::isinf(cumP) || cumP <= 0.) {
+                return 0.;
+            }
         }
 
         truncate_bvn_2by2block(mu_trunc[2*step], mu_trunc[2*step + 1],
@@ -239,15 +278,25 @@ double norm_cdf_nd_tvbs_internal
             );
 
 
-            p4 = nonstd_cdf_4d(x_reordered + 2*(step+1), mu_trunc + 2*(step+1), qvn_cv, 4);
-            p2 = nonstd_cdf_2d(x_reordered[2*(step+1)], x_reordered[2*(step+1)+1],
-                               mu_trunc[2*(step+1)], mu_trunc[2*(step+1)+1],
-                               qvn_cv[0], qvn_cv[5], qvn_cv[1]);
-            if (p2 <= 0) {
-                return NAN;
-            }
+            if (likely(!logp)) {
+                p4 = nonstd_cdf_4d(x_reordered + 2*(step+1), mu_trunc + 2*(step+1), qvn_cv, 4);
+                p2 = nonstd_cdf_2d(x_reordered[2*(step+1)], x_reordered[2*(step+1)+1],
+                                   mu_trunc[2*(step+1)], mu_trunc[2*(step+1)+1],
+                                   qvn_cv[0], qvn_cv[5], qvn_cv[1]);
+                if (p2 <= 0) {
+                    return NAN;
+                }
 
-            cumP *= p4 / p2;
+                cumP *= p4 / p2;
+            }
+            else {
+                p4 = nonstd_logcdf_4d(x_reordered + 2*(step+1), mu_trunc + 2*(step+1), qvn_cv, 4);
+                p2 = nonstd_logcdf_2d(x_reordered[2*(step+1)], x_reordered[2*(step+1)+1],
+                                      mu_trunc[2*(step+1)], mu_trunc[2*(step+1)+1],
+                                      qvn_cv[0], qvn_cv[5], qvn_cv[1]);
+
+                cumP += p4 - p2;
+            }
         }
         else {
             cblas_dgemm(
@@ -264,21 +313,33 @@ double norm_cdf_nd_tvbs_internal
                 qvn_cv, 3
             );
 
-            p3 = nonstd_cdf_3d(x_reordered + 2*(step+1), mu_trunc + 2*(step+1), qvn_cv, 3);
-            p2 = nonstd_cdf_2d(x_reordered[2*(step+1)], x_reordered[2*(step+1)+1],
-                               mu_trunc[2*(step+1)], mu_trunc[2*(step+1)+1],
-                               qvn_cv[0], qvn_cv[4], qvn_cv[1]);
-            if (p2 <= 0) {
-                return NAN;
-            }
+            if (likely(!logp)) {
+                p3 = nonstd_cdf_3d(x_reordered + 2*(step+1), mu_trunc + 2*(step+1), qvn_cv, 3);
+                p2 = nonstd_cdf_2d(x_reordered[2*(step+1)], x_reordered[2*(step+1)+1],
+                                   mu_trunc[2*(step+1)], mu_trunc[2*(step+1)+1],
+                                   qvn_cv[0], qvn_cv[4], qvn_cv[1]);
+                if (p2 <= 0) {
+                    return NAN;
+                }
 
-            cumP *= p3 / p2;
+                cumP *= p3 / p2;
+            }
+            else {
+                p3 = nonstd_logcdf_3d(x_reordered + 2*(step+1), mu_trunc + 2*(step+1), qvn_cv, 3);
+                p2 = nonstd_logcdf_2d(x_reordered[2*(step+1)], x_reordered[2*(step+1)+1],
+                                      mu_trunc[2*(step+1)], mu_trunc[2*(step+1)+1],
+                                      qvn_cv[0], qvn_cv[4], qvn_cv[1]);
+
+                cumP += p3 - p2;
+            }
         }
 
     }
 
-    cumP = std::fmax(cumP, 0.);
-    cumP = std::fmin(cumP, 1.);
+    if (likely(!logp)) {
+        cumP = std::fmax(cumP, 0.);
+        cumP = std::fmin(cumP, 1.);
+    }
     return cumP;
 }
 
@@ -290,6 +351,7 @@ double norm_cdf_tvbs
     const double mu[], /* ignored when is_standardized=false */
     const int n,
     const bool is_standardized,
+    const bool logp,
     double *restrict buffer /* dim: 6*n^2 + 6*n - 8 */
 )
 {
@@ -320,7 +382,8 @@ double norm_cdf_tvbs
             NULL,
             NULL,
             NULL,
-            NULL
+            NULL,
+            logp
         );
     }
 
@@ -366,6 +429,7 @@ double norm_cdf_tvbs
         temp2,
         temp3,
         temp4,
-        rho_copy
+        rho_copy,
+        logp
     );
 }

@@ -44,3 +44,44 @@ double norm_lcdf_1d(double x)
     */
     return norm_cdf_1d(-x);
 }
+
+/* Adapted from SciPy:
+   https://github.com/scipy/scipy/blob/main/scipy/stats/_continuous_distns.py */
+double norm_logpdf_1d(double x)
+{
+    return -0.5 * (x*x) - log_sqrt_twoPI;
+}
+
+/* Adapted from SciPy:
+   https://github.com/scipy/scipy/blob/8a64c938ddf1ae4c02a08d2c5e38daeb8d061d38/scipy/special/cephes/ndtr.c */
+double norm_logcdf_1d(double a)
+{
+    const double a_sq = a * a;
+    double log_LHS;              /* we compute the left hand side of the approx (LHS) in one shot */
+    double last_total = 0;       /* variable used to check for convergence */
+    double right_hand_side = 1;  /* includes first term from the RHS summation */
+    double numerator = 1;        /* numerator for RHS summand */
+    double denom_factor = 1;     /* use reciprocal for denominator to avoid division */
+    double denom_cons = 1./a_sq; /* the precomputed division we use to adjust the denominator */
+    long sign = 1;
+    long i = 0;
+
+    if (a > 6.) {
+        return -norm_cdf_1d(-a);        /* log(1+x) \approx x */
+    }
+    if (a > -20.) {
+        return std::log(norm_cdf_1d(a));
+    }
+    log_LHS = -0.5*a_sq - std::log(-a) - half_log_twoPI;
+
+    while (std::fabs(last_total - right_hand_side) > std::numeric_limits<double>::epsilon()) {
+        i++;
+        last_total = right_hand_side;
+        sign = -sign;
+        denom_factor *= denom_cons;
+        numerator *= 2 * i - 1;
+        right_hand_side = std::fma(sign*numerator, denom_factor, right_hand_side);
+    }
+    
+    return log_LHS + std::log(right_hand_side);
+}

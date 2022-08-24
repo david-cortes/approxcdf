@@ -69,6 +69,13 @@ NULL
 #' Cannot pass it when using `is_standardized=TRUE`.
 #' @param is_standardized Whether the parameters correspond to a standardized MVN distribution - that is, the
 #' means for all variables are zero, and `Cov` has only ones on its diagonal.
+#' @param log.p Whether to return the logarithm of the probability instead of the probability itself.
+#' This is helpful when dealing with very small probabilities, since they
+#' might get rounded down to exactly zero in their raw form or not be representable
+#' very exactly as float64, while the logarithm is likely still well defined.
+#' Note that it will use slightly different methods here (all calculations, even
+#' for 2D and 3D will use uni/bi-variate screening methods) and thus exponentiating
+#' this result might not match exactly with the result obtained with `log.p=FALSE`.
 #' @returns The (approximate) probability that each variable drawn from the MVN distribution parameterized by
 #' `Cov` and `mean` will be lower than each corresponding threshold in `q`. If for some reason the calculation
 #' failed, will return NaN.
@@ -95,7 +102,7 @@ NULL
 #' ### (Result should not be too far from Genz's or Plackett's,
 #' ###  but should be around 50-100x faster to calculate, and this
 #' ###  speed up should increase to around 1,000x for larger 'n')
-pmvn <- function(q, Cov, mean = NULL, is_standardized = FALSE) {
+pmvn <- function(q, Cov, mean = NULL, is_standardized = FALSE, log.p = FALSE) {
     if (!is.matrix(Cov)) {
         stop("'Cov' must be a numeric matrix.")
     }
@@ -121,7 +128,7 @@ pmvn <- function(q, Cov, mean = NULL, is_standardized = FALSE) {
         stop("Cannot pass missing values in parameters.")
     }
 
-    return(.Call(R_norm_cdf_tvbs, q, Cov, mean, is_standardized))
+    return(.Call(R_norm_cdf_tvbs, q, Cov, mean, is_standardized, log.p))
 }
 
 #' @export

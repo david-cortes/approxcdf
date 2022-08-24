@@ -6,6 +6,8 @@ Compared to the MVNDST library used by R's mvtnorm and Python's SciPy, calculati
 
 Also implemented are Plackett's reduction for quadrivariate (4D) problems and Tsay's approximation for bivariate (2D) problems.
 
+Can alternatively output log-probabilities which can be more exact when dealing with probabilities too close to zero.
+
 # Installation
 
 * R:
