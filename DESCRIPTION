@@ -10,7 +10,9 @@ Authors@R: c(
   person(given="Zvi", family="Drezner", role="cph",
          comment="Copyright holder of original 2D and 3D fast CDF functions"),
   person(given="Netlib", role="cph",
-         comment="Copyright holder of original Cephes library")
+         comment="Copyright holder of original Cephes library"),
+  person(given="SciPy", family="Developers", role="cph",
+         comment="Copyright holder of some univariate normal functions")
   )
 Maintainer: David Cortes <david.cortes.rivera@gmail.com>
 URL: https://github.com/david-cortes/approxcdf
