@@ -120,6 +120,11 @@ void truncate_bvn_2by2block(const double mu1, const double mu2,
                             const double t1, const double t2,
                             double &restrict mu1_out, double &restrict mu2_out,
                             double &restrict v1_out, double &restrict v2_out, double &restrict cv_out);
+void truncate_logbvn_2by2block(const double mu1, const double mu2,
+                               const double v1, const double v2, const double cv,
+                               const double t1, const double t2,
+                               double &restrict mu1_out, double &restrict mu2_out,
+                               double &restrict v1_out, double &restrict v2_out, double &restrict cv_out);
 APPROXCDF_EXPORTED
 double norm_cdf_tvbs
 (

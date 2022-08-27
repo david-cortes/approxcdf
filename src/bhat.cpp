@@ -74,6 +74,66 @@ void bv_trunc_std4d_loweronly(const double rho[6], const double tp[2],
     #endif
 }
 
+static inline
+void logbv_trunc_std4d_loweronly(const double rho[6], const double tp[2],
+                                double *restrict mu_out, double *restrict Omega_out)
+{
+    double detV11 = std::fma(-rho[0], rho[0], 1.);
+    double invV11v = 1. / detV11;
+    double invV11d = -rho[0] / detV11;
+    #ifdef REGULARIZE_BHAT
+    double reg = 1e-5;
+    double d = 1.;
+    while (detV11 <= 1e-2) {
+        d += reg;
+        detV11 = std::fma(-rho[0], rho[0], d*d);
+        invV11v = d / detV11;
+        invV11d = -rho[0] / detV11;
+        reg *= 1.5;
+    }
+    #endif
+
+    double Omega11[3];
+    double mu_half[2];
+    truncate_logbvn_2by2block(0., 0., 1., 1., rho[0], tp[0], tp[1],
+                              mu_half[0], mu_half[1],
+                              Omega11[0], Omega11[1], Omega11[2]);
+
+    mu_out[0] = (invV11v*rho[1] + invV11d*rho[3]) * (mu_half[0]) +
+                (invV11d*rho[1] + invV11v*rho[3]) * (mu_half[1]);
+    mu_out[1] = (invV11v*rho[2] + invV11d*rho[4]) * (mu_half[0]) +
+                (invV11d*rho[2] + invV11v*rho[4]) * (mu_half[1]);
+
+    double Omega11_invV11[] = {
+        Omega11[0]*invV11v + Omega11[2]*invV11d, Omega11[0]*invV11d + Omega11[2]*invV11v,
+        Omega11[2]*invV11v + Omega11[1]*invV11d, Omega11[2]*invV11d + Omega11[1]*invV11v
+    };
+    /* O12 */
+    double O12[] = {
+        Omega11_invV11[0]*rho[1] + Omega11_invV11[1]*rho[3], Omega11_invV11[0]*rho[2] + Omega11_invV11[1]*rho[4],
+        Omega11_invV11[2]*rho[1] + Omega11_invV11[3]*rho[3], Omega11_invV11[2]*rho[2] + Omega11_invV11[3]*rho[4]
+    };
+    /* V12 - O12 */
+    double temp1[] = {
+        rho[1] - O12[0], rho[2] - O12[1],
+        rho[3] - O12[2], rho[4] - O12[3]
+    };
+    /* iV11 * (V12 - O12) */
+    double temp2[] = {
+        invV11v*temp1[0] + invV11d*temp1[2], invV11v*temp1[1] + invV11d*temp1[3],
+        invV11d*temp1[0] + invV11v*temp1[2], invV11d*temp1[1] + invV11v*temp1[3]
+    };
+    /* V22 - V21 * (iV11 * (V12 - O12)) */
+    Omega_out[0] = 1. - rho[1]*temp2[0] - rho[3]*temp2[2];
+    Omega_out[1] = 1. - rho[2]*temp2[1] - rho[4]*temp2[3];
+    Omega_out[2] = rho[5] - rho[1]*temp2[1] - rho[3]*temp2[3];
+
+    #ifdef REGULARIZE_BHAT
+    Omega_out[0] = std::fmax(Omega_out[0], 0.005);
+    Omega_out[1] = std::fmax(Omega_out[1], 0.005);
+    #endif
+}
+
 /* This is an adaptation of 'cdfqvn'
    Note: "Bhat" is the author's surname.
 
@@ -417,7 +477,7 @@ double norm_logcdf_4d_internal(const double x[4], const double rho[6])
 {
     double mu[2];
     double Sigma[3];
-    bv_trunc_std4d_loweronly(rho, x, mu, Sigma);
+    logbv_trunc_std4d_loweronly(rho, x, mu, Sigma);
 
     double p1 = norm_logcdf_1d((x[2] - mu[0]) / std::sqrt(Sigma[0]));
     double p2 = norm_logcdf_2d(
