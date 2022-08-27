@@ -17,6 +17,7 @@ class build_ext_subclass( build_ext ):
         else:
             if not self.check_for_variable_dont_set_march() and not self.is_arch_in_cflags():
                 self.add_march_native()
+            self.set_cxxstd()
             self.add_openmp_linkage()
             self.add_restrict_qualifier()
             self.add_O3()
