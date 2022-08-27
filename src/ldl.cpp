@@ -184,8 +184,8 @@ void update_ldl_rank2(double *restrict L, const int ld_L,
                 #ifdef REGULARIZE_BHAT
                 reg = reg_base;
                 while (detD <= 1e-4) {
-                    newD[0] += reg;
-                    newD[3] += reg;
+                    newD[ix + 0 + (ix + 0)*n1] += reg;
+                    newD[ix + 1 + (ix + 1)*n1] += reg;
                     detD = newD[ix + 0 + (ix + 0)*n1] * newD[ix + 1 + (ix + 1)*n1] - newD[ix + 1 + (ix + 0)*n1] * newD[ix + 0 + (ix + 1)*n1];
                     reg *= 1.5;
                 }
