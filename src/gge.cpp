@@ -3,7 +3,7 @@
 static inline
 double expectation_truncated_normal(double trunc)
 {
-    double out = -norm_pdf_1d(trunc) / norm_cdf_1d(trunc);
+    double out = -std::exp(norm_logpdf_1d(trunc) - norm_logcdf_1d(trunc));
     out = std::fmax(out, -8.);
     return out;
 }

@@ -101,18 +101,25 @@ void truncate_logbvn_2by2block(const double mu1, const double mu2,
 
     double temp1 = sign_rho * std::exp(log_rho_pd2_cd1 - log_pd1_cd2);
     double temp2 = sign_rho * std::exp(log_rho_pd1_cd2 - log_pd2_cd1);
+
+    double sign_m1 = -1.;
+    double sign_m2 = -1.;
     double log_m1, log_m2;
     if (temp1 > -1.) {
         log_m1 = log_pd1_cd2 + std::log1p(temp1) - logp;
     }
     else {
-        log_m1 = log_pd1_cd2 - logp;
+        log_m1 = -std::fma(rho, std::exp(log_pd2_cd1), std::exp(log_pd1_cd2)) / std::exp(logp);
+        sign_m1 = (log_m1 >= 0.)? 1. : -1.;
+        log_m1 = std::log(log_m1);
     }
     if (temp2 > -1.) {
         log_m2 = log_pd2_cd1 + std::log1p(temp2) - logp;
     }
     else {
-        log_m2 = log_pd2_cd1 - logp;
+        log_m2 = -std::fma(rho, std::exp(log_pd1_cd2), std::exp(log_pd2_cd1)) / std::exp(logp);
+        sign_m2 = (log_m2 >= 0.)? 1. : -1.;
+        log_m2 = std::log(log_m2);
     }
 
     double sign_ntp1 = (ntp1 >= 0.)? 1. : -1.;
@@ -138,8 +145,8 @@ void truncate_logbvn_2by2block(const double mu1, const double mu2,
     ) + std::exp(log_rhotilde + logpd1 + log_pdf_tr2 - logp)
      - std::exp(log_m1 + log_m2);
 
-    mu1_out = std::fma(-std::exp(log_m1), s1, mu1);
-    mu2_out = std::fma(-std::exp(log_m2), s2, mu2);
+    mu1_out = std::fma(sign_m1 * std::exp(log_m1), s1, mu1);
+    mu2_out = std::fma(sign_m2 * std::exp(log_m2), s2, mu2);
     v1_out = v1 * os1;
     v2_out = v2 * os2;
     cv_out = s1 * s2 * orho;
