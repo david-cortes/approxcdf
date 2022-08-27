@@ -572,5 +572,5 @@ double norm_logcdf_4d(const double x[4], const double rho[6])
     double rhopass[6];
     std::copy(rho, rho + 6, rhopass);
     rearrange_tri(rhopass, argsorted);
-    return norm_logcdf_4d_internal(x, rho);
+    return norm_logcdf_4d_internal(xpass, rhopass);
 }
