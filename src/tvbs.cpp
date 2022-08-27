@@ -145,7 +145,7 @@ void truncate_logbvn_2by2block(const double mu1, const double mu2,
     cv_out = s1 * s2 * orho;
 
     v1_out = std::fmax(v1_out, std::numeric_limits<double>::min());
-    v2_out = std::fmax(v1_out, std::numeric_limits<double>::min());
+    v2_out = std::fmax(v2_out, std::numeric_limits<double>::min());
 }
 
 double norm_cdf_nd_tvbs_internal
