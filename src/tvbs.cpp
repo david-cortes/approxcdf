@@ -109,17 +109,41 @@ void truncate_logbvn_2by2block(const double mu1, const double mu2,
         log_m1 = log_pd1_cd2 + std::log1p(temp1) - logp;
     }
     else {
-        log_m1 = -std::fma(rho, std::exp(log_pd2_cd1), std::exp(log_pd1_cd2)) / std::exp(logp);
-        sign_m1 = (log_m1 >= 0.)? 1. : -1.;
-        log_m1 = std::log(log_m1);
+        if (sign_rho > 0.) {
+            goto no_log_m1;
+        }
+
+        if (log_rho_pd2_cd1 > log_pd1_cd2) {
+            sign_m1 = 1.;
+            log_m1 = log_rho_pd2_cd1 + std::log1p(-std::exp(log_pd1_cd2 - log_rho_pd2_cd1)) - logp;
+        }
+        else
+        {
+            no_log_m1:
+            log_m1 = -std::fma(rho, std::exp(log_pd2_cd1), std::exp(log_pd1_cd2)) / std::exp(logp);
+            sign_m1 = (log_m1 >= 0.)? 1. : -1.;
+            log_m1 = std::log(log_m1);
+        }
     }
     if (temp2 > -1.) {
         log_m2 = log_pd2_cd1 + std::log1p(temp2) - logp;
     }
     else {
-        log_m2 = -std::fma(rho, std::exp(log_pd1_cd2), std::exp(log_pd2_cd1)) / std::exp(logp);
-        sign_m2 = (log_m2 >= 0.)? 1. : -1.;
-        log_m2 = std::log(log_m2);
+        if (sign_rho > 0.) {
+            goto no_log_m2;
+        }
+
+        if (log_rho_pd1_cd2 > log_pd2_cd1) {
+            sign_m2 = 1.;
+            log_m2 = log_rho_pd1_cd2 + std::log1p(-std::exp(log_pd2_cd1 - log_rho_pd1_cd2)) - logp;
+        }
+        else
+        {
+            no_log_m2:
+            log_m2 = -std::fma(rho, std::exp(log_pd1_cd2), std::exp(log_pd2_cd1)) / std::exp(logp);
+            sign_m2 = (log_m2 >= 0.)? 1. : -1.;
+            log_m2 = std::log(log_m2);
+        }
     }
 
     double sign_ntp1 = (ntp1 >= 0.)? 1. : -1.;
