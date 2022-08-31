@@ -212,6 +212,7 @@ setup(
                                      "src/genz.cpp",
                                      "src/plackett.cpp",
                                      "src/bhat.cpp",
+                                     "src/bhat_lowdim.cpp",
                                      "src/gge.cpp",
                                      "src/other.cpp",
                                      "src/stdnorm.cpp",
