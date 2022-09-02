@@ -62,9 +62,8 @@ differs a bit from TVBS since it uses fewer variables at a time. If the determin
 matrix is too low, it will instead switch to Plackett's original method. Bhat's method as implemented
 here again differs from the original in the same ways as TVBS, and Plackett's method as implemented
 here also differs from the original in that (a) it applies regularization to correlation matrices with
-low determinant, (b) when matrices have a large-enough determinant, it uses the Woodbury matrix identity
-for computation of gradient corrections, which is faster but less precise, (c) it uses more
-Gaussian-Legendre points for evaluation (author's number was meant for a paper-and-pen calculation).
+low determinant, (c) it uses more Gaussian-Legendre points for evaluation (author's number was meant
+for a paper-and-pen calculation).
 \item For \eqn{n = 3}, it will use Plackett-Drezner's method. The implementation here differs from the
 author's original in that it uses more Gauss-Legendre points.
 \item For \eqn{n = 2}, it will use Drezner's method, again with more Gaussian-Legendre points.

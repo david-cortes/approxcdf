@@ -72,7 +72,7 @@ test_that("CDF 4D Plackett-Gassmann", {
         cdf3 <- cdf4d_miwa(x, S)
         diff <- min(abs(cdf1 - cdf2), abs(cdf1 - cdf3))
 
-        expect_lt(diff, 0.04)
+        expect_lt(diff, 0.042)
     }
 })
 

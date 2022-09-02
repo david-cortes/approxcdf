@@ -38,9 +38,8 @@ def mvn_cdf(b: np.array, Cov: np.array, mean: Optional[np.array] = None, is_stan
           matrix is too low, it will instead switch to Plackett's original method. Bhat's method as implemented
           here again differs from the original in the same ways as TVBS, and Plackett's method as implemented
           here also differs from the original in that (a) it applies regularization to correlation matrices with
-          low determinant, (b) when matrices have a large-enough determinant, it uses the Woodbury matrix identity
-          for computation of gradient corrections, which is faster but less precise, (c) it uses more
-          Gaussian-Legendre points for evaluation (author's number was meant for a paper-and-pen calculation).
+          low determinant, (c) it uses more Gaussian-Legendre points for evaluation (author's number was meant
+          for a paper-and-pen calculation).
         - For :math:`n = 3`, it will use Plackett-Drezner's method. The implementation here differs from the
           author's original in that it uses more Gauss-Legendre points.
         - For :math:`n = 2`, it will use Drezner's method, again with more Gaussian-Legendre points.
@@ -193,9 +192,6 @@ def qvn_cdf(b: np.array, Rho: np.array, prefer_original: bool = False):
           in a recursive fashion, zeroing out one correlation coefficient at a time, instead of making
           corrections for all correlations in aggregate. From some experiments, this turned out to result
           in slower but more accurate calculations when correcting for multiple correlations.
-        - If the determinant of a given correlation matrix is high enough, it will use the
-          Woodbury matrix identity when calculating gradients for corrections, which is faster but
-          less accurate.
         - The number of Gaussian-Legendre points used here is higher than in Plackett's, but
           than in Gassmann's.
 

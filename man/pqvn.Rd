@@ -40,9 +40,6 @@ Gassmann's matrix number 7 (Plackett's original choice).
 in a recursive fashion, zeroing out one correlation coefficient at a time, instead of making
 corrections for all correlations in aggregate. From some experiments, this turned out to result
 in slower but more accurate calculations when correcting for multiple correlations.
-\item If the determinant of a given correlation matrix is high enough, it will use the
-Woodbury matrix identity when calculating gradients for corrections, which is faster but
-less accurate.
 \item The number of Gaussian-Legendre points used here is higher than in Plackett's, but
 lower than in Gassmann's.
 }

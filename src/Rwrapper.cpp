@@ -161,22 +161,6 @@ SEXP R_determinant_4by4(SEXP x_)
     return Rf_ScalarReal(determinant4by4tri(xpass));
 }
 
-SEXP R_inverse_4by4_loweronly(SEXP x_)
-{
-    double *x = REAL(x_);
-    const double xpass[] = {
-        x[1], x[2], x[3],
-        x[6], x[7], x[11]
-    };
-    double lower_inv[3];
-    inv4by4tri_loweronly(xpass, lower_inv);
-    SEXP inv22_ = PROTECT(Rf_allocMatrix(REALSXP, 2, 2));
-    double *inv22 = REAL(inv22_);
-    inv22[0] = lower_inv[0]; inv22[1] = lower_inv[2];
-    inv22[2] = lower_inv[2]; inv22[3] = lower_inv[1];
-    UNPROTECT(1);
-    return inv22_;
-}
 #endif /* ifdef RUN_TESTS */
 
 static const R_CallMethodDef callMethods [] = {
@@ -196,7 +180,6 @@ static const R_CallMethodDef callMethods [] = {
     {"R_norm_cdf_4d_bhat", (DL_FUNC) &R_norm_cdf_4d_bhat, 2},
     {"R_factorize_ldl_2by2blocks", (DL_FUNC) &R_factorize_ldl_2by2blocks, 1},
     {"R_determinant_4by4", (DL_FUNC) &R_determinant_4by4, 1},
-    {"R_inverse_4by4_loweronly", (DL_FUNC) &R_inverse_4by4_loweronly, 1},
     #endif
     {NULL, NULL, 0}
 }; 

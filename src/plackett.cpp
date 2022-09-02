@@ -93,147 +93,64 @@ double determinant4by4tri(const double x_tri[6])
             -x00 + 1.;
 }
 
-void regularized_4by4_inverse(double *restrict X, double *restrict Xinv)
+void schur01_4x4(const double x_tri[6], double invX[3])
 {
-    std::copy(X, X + 16, Xinv);
-    int lapack_status;
-    F77_CALL(dpotrf)("L", &four, Xinv, &four, &lapack_status FCONE);
-    F77_CALL(dpotri)("L", &four, Xinv, &four, &lapack_status FCONE);
+    const double rtilde = std::fma(x_tri[0], x_tri[0], -1.);
+    const double x00 = x_tri[0] * x_tri[0];
+    double reg = 0;
+    if (rtilde >= 0) {
+        reg = std::sqrt(std::fmax(rtilde, std::numeric_limits<double>::min()));
+        reg = std::fmax(reg, 1e-16);
+    }
+    reg = 1e-16;
+    if (!reg) {
+        invX[0] = (
+            x00
+            - x_tri[1]*std::fma(x_tri[0], x_tri[3], -x_tri[1])
+            - x_tri[3]*std::fma(x_tri[0], x_tri[1], -x_tri[3])
+            - 1.
+        );
+        invX[1] = (
+            x00
+            - x_tri[2]*std::fma(x_tri[0], x_tri[4], -x_tri[2])
+            - x_tri[4]*std::fma(x_tri[0], x_tri[2], -x_tri[4])
+            - 1.
+        );
+        invX[2] = (
+            x_tri[5]*rtilde
+            - x_tri[2]*std::fma(x_tri[0], x_tri[3], -x_tri[1])
+            - x_tri[4]*std::fma(x_tri[0], x_tri[1], -x_tri[3])
+        );
+    }
+    else {
+        const double adj = std::fma(reg, rtilde, -1.);
+        invX[0] = (
+            x00
+            - x_tri[1]*std::fma(x_tri[0], x_tri[3], x_tri[1]*adj)
+            - x_tri[3]*std::fma(x_tri[0], x_tri[1], x_tri[3]*adj)
+            - 1.
+        );
+        invX[1] = (
+            x00
+            - x_tri[2]*std::fma(x_tri[0], x_tri[4], x_tri[2]*adj)
+            - x_tri[4]*std::fma(x_tri[0], x_tri[2], x_tri[4]*adj)
+            - 1.
+        );
+        invX[2] = (
+            x_tri[5]*rtilde
+            - x_tri[2]*std::fma(x_tri[0], x_tri[3], x_tri[1]*adj)
+            - x_tri[4]*std::fma(x_tri[0], x_tri[1], x_tri[3]*adj)
+        );
+    }
+
+    for (int ix = 0; ix < 3; ix++) {
+        invX[ix] /= rtilde;
+    }
+
     #ifdef REGULARIZE_PLACKETT
-    double reg = 1e-4;
-    double sqroots[4];
-    while (lapack_status > 0 || Xinv[10] >= 20. || Xinv[15] >= 20.) {
-        X[0]  += reg;
-        X[5]  += reg;
-        X[10] += reg;
-        X[15] += reg;
-        std::copy(X, X + 16, Xinv);
-        sqroots[0] = std::sqrt(X[0]);
-        sqroots[1] = std::sqrt(X[5]);
-        sqroots[2] = std::sqrt(X[10]);
-        sqroots[3] = std::sqrt(X[15]);
-        for (int row = 0; row < 3; row++) {
-            for (int col = row+1; col < 4; col++) {
-                Xinv[col + row*4] /= sqroots[row] * sqroots[col];
-            }
-        }
-        Xinv[0]  = 1.;
-        Xinv[5]  = 1.;
-        Xinv[10] = 1.;
-        Xinv[15] = 1.;
-        F77_CALL(dpotrf)("L", &four, Xinv, &four, &lapack_status FCONE);
-        F77_CALL(dpotri)("L", &four, Xinv, &four, &lapack_status FCONE);
-        reg *= 2.;
-    }
+    invX[0] = std::fmax(invX[0], 1e-8);
+    invX[1] = std::fmax(invX[1], 1e-8);
     #endif
-}
-
-/* Assuming a 4-by-4 symmetric matrix is partitioned in 2-by-2 blocks:
-   X = [A, B]
-       [B, C]
-   This function calculates the "C" block of the inverse of X, which is
-   itself symmetric.
-   It assumes that the diagonal of 'X' is composed of ones, thus only the
-   upper triangle of 'X' is referenced.
-
-   If 'C' is partitioned as follows:
-   C = [c1, c3]
-       [c3, c2]
-   Then this function outputs {c1, c2, c3}.
-
-   Note that it's possible to hard-code the inversion formula for a
-   matrix this small:
-   https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
-
-   However, this hard-coded formula is rather imprecise, and if the
-   determinant is small, a Cholesky-based inversion gives lower errors.
-   What's more, if the determinant is too small, the result could have
-   too big numbers. We don't want variances of 10^10 so in that case
-   it's better to apply regularization, even if the result doesn't
-   invert the original matrix.
-
-   Plackett's choice of reference  matrix is particularly prone to
-   giving problematic matrices to invert. */
-void inv4by4tri_loweronly(const double x_tri[6], double invX[3])
-{
-    // double detX = determinant4by4tri(x_tri);
-    double x00 = x_tri[0] * x_tri[0];
-    double x01 = x_tri[0] * x_tri[1];
-    double x02 = x_tri[0] * x_tri[2];
-    double x03 = x_tri[0] * x_tri[3];
-    double x04 = x_tri[0] * x_tri[4];
-    double x14 = x_tri[1] * x_tri[4];
-    double x23 = x_tri[2] * x_tri[3];
-
-    double detX = 
-            x_tri[5] * (
-                x_tri[1] * (x_tri[2] - x04) +
-                x_tri[2] * (x_tri[1] - x03) +
-                x_tri[3] * (x_tri[4] - x02) +
-                x_tri[4] * (x_tri[3] - x01) +
-                x_tri[5] * (x00 - 1.)
-            ) +
-            x_tri[1] * (x03 - x_tri[1]) +
-            x_tri[2] * (x04 - x_tri[2]) +
-            x_tri[3] * (x01 - x_tri[3]) +
-            x_tri[4] * (x02 - x_tri[4]) +
-            x14 * (x14 - x23) +
-            x23 * (x23 - x14) +
-            -x00 + 1.;
-
-
-    if (detX <= 1e-2) {
-        use_cholesky:
-        double X[] = {
-            1., x_tri[0],  x_tri[1],  x_tri[2],
-            0,        1.,  x_tri[3],  x_tri[4],
-            0.,       0.,        1.,  x_tri[5],
-            0.,       0.,        0.,         1.
-        };
-        double Xinv[16];
-        regularized_4by4_inverse(X, Xinv);
-
-        invX[0] = Xinv[10];
-        invX[1] = Xinv[15];
-        invX[2] = Xinv[11];
-        return;
-    }
-
-    // double x00 = x_tri[0] * x_tri[0];
-    // double x01 = x_tri[0] * x_tri[1];
-    // double x02 = x_tri[0] * x_tri[2];
-
-    double i10 = 1. + 
-                 x_tri[4] * (
-                    -x_tri[4] +
-                    2. * x02
-                 ) +
-                 -x00 + 
-                 -x_tri[2] * x_tri[2];
-    double i11 = -x_tri[5] +
-                  x_tri[4] * (
-                      x_tri[3] +
-                      -x01
-                  ) +
-                  x00 * x_tri[5] +
-                  -x02 * x_tri[3] +
-                  x_tri[1] * x_tri[2];
-    double i15 = 1. +
-                 x_tri[3] * (
-                    -x_tri[3] +
-                    2. * x01
-                 ) +
-                 -x00 +
-                 -x_tri[1] * x_tri[1];
-
-
-    invX[0] = i10 / detX;
-    invX[1] = i15 / detX;
-    invX[2] = i11 / detX;
-
-    if (invX[0] >= 25. || invX[1] >= 25. || invX[0] <= 0. || invX[1] <= 0.) {
-        goto use_cholesky;
-    }
 }
 
 /* Assumes that rho_star takes the place of rho[5] */
@@ -780,55 +697,13 @@ double grad_cdf4_rho0_mult2pi(const double x[4], const double rho[6])
         x[1] * std::fma(-rho[0], rho[2], rho[4])
     );
 
-    double C22[3];
-    inv4by4tri_loweronly(rho, C22);
-    double detC22 = C22[0]*C22[1] - C22[2]*C22[2];
-    double var3 = std::sqrt(C22[1] / detC22);
-    double var4 = std::sqrt(C22[0] / detC22);
-    double cov = -C22[2] / detC22;
+    double iC22[3];
+    schur01_4x4(rho, iC22);
 
     double f3 = norm_cdf_2d(
-        (x[2] - b3) / var3,
-        (x[3] - b4) / var4,
-        cov / (var3 * var4)
-    );
-    return f1 * f2 * f3;
-}
-
-/* This one assumes it is already given C22 (diag1, diag2, corner) */
-double grad_cdf4_rho0_noinv_mult2pi(const double x[4], const double rho[6], const double C22[3])
-{
-    double expr1 = std::fma(-rho[0], rho[0], 1.);
-    #ifdef REGULARIZE_PLACKETT
-    double reg = 1e-5;
-    double d = 1.;
-    while (expr1 <= 0.025) {
-        d += reg;
-        expr1 = std::fma(-rho[0], rho[0], d*d);
-        reg *= 1.5;
-    }
-    #endif
-    expr1 = 1. / expr1;
-    double f1 = std::sqrt(expr1);
-    double f2 = std::exp(-0.5 * expr1 * (x[0]*x[0] + x[1]*x[1] + 2.*x[0]*x[1]*rho[0]));
-    double b3 = expr1 * (
-        x[0] * std::fma(-rho[0], rho[3], rho[1]) +
-        x[1] * std::fma(-rho[0], rho[1], rho[3])
-    );
-    double b4 = expr1 * (
-        x[0] * std::fma(-rho[0], rho[4], rho[2]) +
-        x[1] * std::fma(-rho[0], rho[2], rho[4])
-    );
-
-    double detC22 = C22[0]*C22[1] - C22[2]*C22[2];
-    double var3 = std::sqrt(C22[1] / detC22);
-    double var4 = std::sqrt(C22[0] / detC22);
-    double cov = -C22[2] / detC22;
-
-    double f3 = norm_cdf_2d(
-        (x[2] - b3) / var3,
-        (x[3] - b4) / var4,
-        cov / (var3 * var4)
+        (x[2] - b3) / iC22[0],
+        (x[3] - b4) / iC22[1],
+        iC22[2] / (iC22[0] * iC22[1])
     );
     return f1 * f2 * f3;
 }
@@ -839,163 +714,18 @@ double plackett_correction_rho2_mult2pi(const double x[4], const double rho[6], 
     const double x2[] = {x[0], x[3], x[1], x[2]};
     double rho2[] = {rho[2], rho[0], rho[1], rho[4], rho[5], rho[3]};
 
-    /* Note: if we change only one entry, the inverse of the matrix R
-       can be obtained using the Woodbury matrix idendity.
-
-       Assuming we are correcting only for rho(1,2), if we define
-       two column vectors as follows:
-           u = [diff, 0, 0, 0]
-           v = [   0, 1, 0, 0]
-       Then R(t) is an SR2 update:
-           R(t) = R(0) + u*t(v) + v*t(u)
-
-       Define matrices:
-           U =   [u, v]
-           V = t([u, v])
-
-       Then:
-            R(t) = R(0) + U*V
-
-       By the Woodbury matrix identity:
-           inv(R(0) + U*V) = C(t) = C(0) - C(0)*U*(I + V*C(0)*U)*V*C(0)
-
-       Thus, it's only necessary to invert the matrix once. Note however
-       that the formula above is not always numerically stable, so it first
-       needs to test whether it can use it, and whether the determinant is
-       large enough that the loss of accuracy is tolerable.
-
-       Alternatively, one might instead start with the inverse of the
-       original matrix and then make updates by substracting instead.
-
-       In theory, could also apply this same formula for getting the
-       inverse of a full PG5 point (corrections for a full row):
-           u = [d1, d2, d3, 0]
-           v = [ 0,  0,  0, 1]
-
-       But for a PG2 point it'd be more complex. */
-    #ifdef PLACKETT_USE_WOODBURY
-    double det_subst = determinant4by4tri(rho2);
-    double det_orig = determinant4by4tri(rho);
-    bool use_subst = det_subst >= det_orig;
-    double detR = use_subst? det_subst : det_orig;
-    constexpr const double det_threshold = 0.05;
-    double R[] = {
-        1., rho2[0], rho2[1], rho2[2],
-        0,  1.,      rho2[3], rho2[4],
-        0., 0.,          1.,  rho2[5],
-        0., 0.,          0.,       1.
-    };
-    if (use_subst) {
-        R[1] = rho_ref;
-    }
-    double C[16];
-    if (detR > det_threshold) {
-        regularized_4by4_inverse(R, C);
-    }
-    #endif
-
     double correction = 0;
     double gradp, gradn;
     const double rho_grad = rho2[0];
 
-    #ifdef PLACKETT_USE_WOODBURY
-    if (detR <= det_threshold) {
-    #endif
+    for (int ix = 0; ix < 8; ix++) {
+        rho2[0] = rho_grad * GL16_xp[ix] + rho_ref * GL16_xn[ix];
+        gradp = grad_cdf4_rho0_mult2pi(x2, rho2);
+        rho2[0] = rho_grad * GL16_xn[ix] + rho_ref * GL16_xp[ix];
+        gradn = grad_cdf4_rho0_mult2pi(x2, rho2);
 
-        /* Note: here, a more precise estimate is needed, and one would ideally
-           want to get more points. However, the gradients in this situation will
-           not be well defined near the extreme points and whatever it outputs
-           will be wrong, so better avoid points close to the extremes. */
-        for (int ix = 0; ix < 4; ix++) {
-            rho2[0] = rho_grad * GL8_xp[ix] + rho_ref * GL8_xn[ix];
-            gradp = grad_cdf4_rho0_mult2pi(x2, rho2);
-            rho2[0] = rho_grad * GL8_xn[ix] + rho_ref * GL8_xp[ix];
-            gradn = grad_cdf4_rho0_mult2pi(x2, rho2);
-
-            correction = std::fma(GL8_w[ix], gradp + gradn, correction);
-        }
-
-    #ifdef PLACKETT_USE_WOODBURY
+        correction = std::fma(GL16_w[ix], gradp + gradn, correction);
     }
-    else {
-
-        
-        double C26 = C[2] * C[6];
-        double C27 = C[2] * C[7];
-        double C36 = C[3] * C[6];
-        double C37 = C[3] * C[7];
-
-        double C06 = C[0] * C[6];
-        double C35 = C[3] * C[5];
-        double C066 = C06 * C[6];
-        double C077 = C[0] * C[7] * C[7];
-        double C225 = C[2] * C[2] * C[5];
-        double C335 = C[3] * C35;
-        double C067 = C06 * C[7];
-        double C126 = C[1] * C26;
-        double C127 = C[1] * C27;
-        double C136 = C[1] * C36;
-        double C137 = C[1] * C37;
-        double C235 = C[2] * C35;
-
-        double C126m2 = 2. * C126;
-        double C137m2 = 2. * C137;
-        double C26m2 = 2. * C26;
-        double C37m2 = 2. * C37;
-        double C27p36 =  C27 + C36;
-
-        double C066pC126m2pC225 = C066 + C126m2 + C225;
-        double C077pC137m2pC335 = C077 + C137m2 + C335;
-        double C067p127p136p235 = C067 + C127 + C136 + C235;
-
-
-        const double C22_base[] = {C[10], C[15], C[11]};
-        double C22_corr[3];
-
-        const double rbase = use_subst? rho_ref : rho[2];
-        double rcorr;
-        double diff, diff_sq, mult;
-        double grad_this;
-        for (int ix = 0; ix < 8; ix++) {
-            for (int direction = 0; direction < 2; direction++) {
-                if (direction == 0) {
-                    rcorr = rho_grad * GL16_xp[ix] + rho_ref * GL16_xn[ix];
-                }
-                else {
-                    rcorr = rho_grad * GL16_xn[ix] + rho_ref * GL16_xp[ix];
-                }
-                rho2[0] = rcorr;
-                diff = rcorr - rbase;
-                mult = std::fma(C[1], diff, 1.);
-                if (std::fabs(mult) >= 40.) {
-                    goto reinvert_R;
-                }
-                diff_sq = diff * diff;
-
-                C22_corr[0] = std::fma(-diff_sq, C066pC126m2pC225 + C26m2  / diff, C22_base[0]);
-                C22_corr[1] = std::fma(-diff_sq, C077pC137m2pC335 + C37m2  / diff, C22_base[1]);
-                C22_corr[2] = std::fma(-diff_sq, C067p127p136p235 + C27p36 / diff, C22_base[2]);
-
-                if (true) {
-                    grad_this = grad_cdf4_rho0_noinv_mult2pi(x2, rho2, C22_corr);
-                }
-                else {
-                    reinvert_R:
-                    grad_this = grad_cdf4_rho0_mult2pi(x2, rho2);
-                }
-
-                if (direction == 0) {
-                    gradp = grad_this;
-                }
-                else {
-                    gradn = grad_this;
-                }
-            }
-
-            correction = std::fma(GL16_w[ix], gradp + gradn, correction);
-        }
-    }
-    #endif
 
     return correction * (rho[2] - rho_ref);
 }
