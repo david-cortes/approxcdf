@@ -3,6 +3,7 @@
 /* https://bugs.r-project.org/show_bug.cgi?id=15620 */
 double norm_pdf_1d(double x)
 {
+    if (std::isinf(x)) return 0.;
     if (likely(x < 5. && x > -5.)) {
         return inv_sqrt2_pi * std::exp(-0.5 * x * x);
     }
@@ -19,6 +20,9 @@ double norm_cdf_1d(double x)
     /* This is technically correct but very imprecise:  
     return 0.5 * std::erfc(neg_inv_sqrt2 * x);
     */
+    if (std::isinf(x)) {
+        return (x >= 0.)? 1. : 0.;
+    }
     double x_, y, z;
     x_ = x * inv_sqrt2;
     z = std::fabs(x_);
@@ -49,6 +53,7 @@ double norm_lcdf_1d(double x)
    https://github.com/scipy/scipy/blob/main/scipy/stats/_continuous_distns.py */
 double norm_logpdf_1d(double x)
 {
+    if (std::isinf(x)) return -std::numeric_limits<double>::infinity();
     return -0.5 * (x*x) - log_sqrt_twoPI;
 }
 
@@ -56,6 +61,9 @@ double norm_logpdf_1d(double x)
    https://github.com/scipy/scipy/blob/8a64c938ddf1ae4c02a08d2c5e38daeb8d061d38/scipy/special/cephes/ndtr.c */
 double norm_logcdf_1d(double a)
 {
+    if (std::isinf(a)) {
+        return (a >= 0.)? 0. : -std::numeric_limits<double>::infinity();
+    }
     const double a_sq = a * a;
     double log_LHS;              /* we compute the left hand side of the approx (LHS) in one shot */
     double last_total = 0;       /* variable used to check for convergence */
