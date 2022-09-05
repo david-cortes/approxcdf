@@ -20,7 +20,6 @@ double norm_logcdf_2d(double x1, double x2, double rho)
     double log_d1 = norm_logpdf_1d(x1);
     double log_p1 = norm_logcdf_1d(x1);
     double log_l1 = log_d1 - log_p1;
-    if (x1 > 1e2) log_l1 = std::fmin(0., log_l1);
     double sign_l1 = -1.;
     double log_rho = std::log(std::fabs(rho));
     double sign_rho = (rho >= 0.)? 1. : -1.;
@@ -32,9 +31,7 @@ double norm_logcdf_2d(double x1, double x2, double rho)
     double v2 = sign_rho * sign_x1 * sign_rl1 * std::exp(log_rho + log_x1 + log_rl1);
     double rl1 = sign_rl1 * std::exp(log_rl1);
     v2 += std::fma(-rl1, rl1, 1.);
-    if (!v2) {
-        v2 = std::numeric_limits<double>::min();
-    }
+    v2 = std::fmax(v2, std::numeric_limits<double>::min());
 
     return norm_logcdf_1d(x1) + norm_logcdf_1d((x2 - rl1) / std::sqrt(v2));
 }
@@ -61,7 +58,6 @@ double norm_logcdf_3d(double x1, double x2, double x3, double rho12, double rho1
     }
     
     double temp = norm_logpdf_1d(x1) - norm_logcdf_1d(x1);
-    if (x1 > 1e2) temp = std::fmin(0., temp);
     double mutilde = -std::exp(temp);
     double omega = 1. + (mutilde * (x1 - mutilde));
 
@@ -69,8 +65,13 @@ double norm_logcdf_3d(double x1, double x2, double x3, double rho12, double rho1
     double rho13_sq = rho13 * rho13;
     double omega_m1 = omega - 1.;
 
-    double s11 = std::sqrt(std::fma(rho12_sq, omega_m1, 1.));
-    double s22 = std::sqrt(std::fma(rho13_sq, omega_m1, 1.));
+    double t1 = std::fma(rho12_sq, omega_m1, 1.);
+    t1 = std::fmax(t1, std::numeric_limits<double>::min());
+    double t2 = std::fma(rho13_sq, omega_m1, 1.);
+    t2 = std::fmax(t2, std::numeric_limits<double>::min());
+
+    double s11 = std::sqrt(t1);
+    double s22 = std::sqrt(t2);
     double v12 = rho23 + rho12 * rho13 * omega_m1;
 
     double p1 = norm_logcdf_2d(x1, x2, rho12);
