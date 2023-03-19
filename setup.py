@@ -45,14 +45,18 @@ class build_ext_subclass( build_ext ):
         build_ext.build_extensions(self)
 
     def check_cflags_contain_arch(self):
-        if "CFLAGS" in os.environ:
+        if ("CFLAGS" in os.environ) or ("CXXFLAGS" in os.environ):
+            has_cflags = "CFLAGS" in os.environ
+            has_cxxflags = "CXXFLAGS" in os.environ
             arch_list = [
                 "-march", "-mcpu", "-mtune", "-msse", "-msse2", "-msse3",
                 "-mssse3", "-msse4", "-msse4a", "-msse4.1", "-msse4.2",
                 "-mavx", "-mavx2", "-mavx512"
             ]
             for flag in arch_list:
-                if flag in os.environ["CFLAGS"]:
+                if has_cflags and flag in os.environ["CFLAGS"]:
+                    return True
+                if has_cxxflags and flag in os.environ["CXXFLAGS"]:
                     return True
         return False
 
