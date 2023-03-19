@@ -1,3 +1,5 @@
+#cython: language_level=3
+
 ### BLAS and LAPACK
 from scipy.linalg.cython_blas cimport (
     ddot, daxpy, dgemv, dgemm, dtrmm, dtrsm

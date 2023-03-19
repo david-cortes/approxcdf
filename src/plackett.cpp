@@ -63,8 +63,6 @@
    case it ends up giving reasonable results with an error of around 1e-8,
    but still very slow. */
 
-const int four = 4;
-
 /* https://stackoverflow.com/questions/2937702/i-want-to-find-determinant-of-4x4-matrix-in-c-sharp */
 double determinant4by4tri(const double x_tri[6])
 {
