@@ -260,8 +260,11 @@ setup(
                             include_dirs=[np.get_include(), ".", "./src", "./approxcdf"],
                             language="c++",
                             install_requires = ["numpy", "cython", "scipy"],
-                            define_macros = [("FOR_PYTHON", None)]
-                            )]
+                            define_macros = [
+                                ("FOR_PYTHON", None),
+                                ("NDEBUG", None)
+                            ]
+                        )]
 )
 
 if not found_omp:
