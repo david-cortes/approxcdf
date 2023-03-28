@@ -11,11 +11,17 @@ Can alternatively output log-probabilities which can be more exact when dealing 
 # Installation
 
 * R:
+
+**Note:** This package benefits from extra optimizations that aren't enabled by default for R packages. See [this guide](https://github.com/david-cortes/installing-optimized-libraries) for instructions on how to enable them.
+
 ```r
 remotes::install_github("david-cortes/approxcdf")
 ```
 
 * Python
+
+**Note:** requires a C compiler configured for Python. See [this guide](https://github.com/david-cortes/installing-optimized-libraries) for instructions.
+
 ```
 pip install git+https://www.github.com/david-cortes/approxcdf.git
 ```
