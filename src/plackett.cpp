@@ -98,9 +98,10 @@ void schur01_4x4(const double x_tri[6], double invX[3])
     double reg = 0;
     if (rtilde >= 0) {
         reg = std::sqrt(std::fmax(rtilde, std::numeric_limits<double>::min()));
+        #ifdef REGULARIZE_PLACKETT
         reg = std::fmax(reg, 1e-16);
+        #endif
     }
-    reg = 1e-16;
     if (!reg) {
         invX[0] = (
             x00
