@@ -4,7 +4,7 @@ from typing import Optional
 
 __all__ = ["mvn_cdf", "bvn_cdf", "qvn_cdf"]
 
-def mvn_cdf(b: np.array, Cov: np.array, mean: Optional[np.array] = None, is_standardized: bool = False, logp: bool = False):
+def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, is_standardized: bool = False, logp: bool = False):
     """
     Cumulative Distribution Function for Multivariate Normal Distribution
 
@@ -168,7 +168,7 @@ def bvn_cdf(b1: float, b2: float, rho: float):
     """
     return _cpp_wrapper.py_norm_cdf_2d_vfast(b1, b2, rho)
 
-def qvn_cdf(b: np.array, Rho: np.array, prefer_original: bool = False):
+def qvn_cdf(b: np.ndarray, Rho: np.ndarray, prefer_original: bool = False):
     """
     Cumulative Distribution Function for Quadrivariate Normal Distribution
 
