@@ -3,6 +3,7 @@ from setuptools.extension import Extension
 from Cython.Distutils import build_ext
 import numpy as np
 import sys, os, subprocess
+import warnings
 from os import environ
 
 found_omp = True
