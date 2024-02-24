@@ -4,7 +4,7 @@ from typing import Optional
 
 __all__ = ["mvn_cdf", "bvn_cdf", "qvn_cdf"]
 
-def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, is_standardized: bool = False, logp: bool = False):
+def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, is_standardized: bool = False, logp: bool = False) -> float:
     """
     Cumulative Distribution Function for Multivariate Normal Distribution
 
@@ -105,8 +105,7 @@ def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, i
     if (len(b.shape) != 1) or (b.shape[0] != Cov.shape[1]):
         raise ValueError("Dimensions of 'q' and 'Cov' do not match.")
 
-    if b.strides[0] != b.itemsize:
-        b = np.ascontiguousarray(b)
+    b = np.require(b, dtype=np.float64, requirements=["ENSUREARRAY", "C_CONTIGUOUS"])
     if mean is None:
         mean = np.array([], dtype=np.float64)
     else:
@@ -114,12 +113,10 @@ def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, i
             raise ValueError("Cannot pass 'mean' when using 'is_standardized=True'.")
         if (len(mean.shape) != 1) or mean.shape[0] != Cov.shape[0]:
             raise ValueError("Dimensions of 'mean' and 'Cov' do not match.")
-        if mean.strides[0] != mean.itemsize:
-            mean = np.ascontiguousarray(mean)
+        mean = np.require(mean, dtype=np.float64, requirements=["ENSUREARRAY", "C_CONTIGUOUS"])
         if np.any(np.isnan(mean)):
             raise ValueError("Cannot pass missing values in parameters.")
-    if Cov.strides[1] != Cov.itemsize:
-        Cov = np.ascontiguousarray(Cov)
+    Cov = np.require(Cov, dtype=np.float64, requirements=["ENSUREARRAY", "C_CONTIGUOUS"])
     ld_Cov = int(Cov.strides[0] / Cov.itemsize)
 
     if np.any(np.isnan(b)) or np.any(np.isnan(Cov)):
@@ -128,7 +125,7 @@ def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, i
     return _cpp_wrapper.py_norm_cdf_tvbs(b, mean, Cov, ld_Cov, is_standardized, logp)
 
 
-def bvn_cdf(b1: float, b2: float, rho: float):
+def bvn_cdf(b1: float, b2: float, rho: float) -> float:
     """
     Cumulative Distribution Function for Bivariate Normal Distribution
 
@@ -168,7 +165,7 @@ def bvn_cdf(b1: float, b2: float, rho: float):
     """
     return _cpp_wrapper.py_norm_cdf_2d_vfast(b1, b2, rho)
 
-def qvn_cdf(b: np.ndarray, Rho: np.ndarray, prefer_original: bool = False):
+def qvn_cdf(b: np.ndarray, Rho: np.ndarray, prefer_original: bool = False) -> float:
     """
     Cumulative Distribution Function for Quadrivariate Normal Distribution
 
@@ -236,8 +233,8 @@ def qvn_cdf(b: np.ndarray, Rho: np.ndarray, prefer_original: bool = False):
         raise ValueError("Correlation matrix must have square shape.")
     if b.shape[0] != Rho.shape[0]:
         raise ValueError("Dimensions of 'q' and 'Rho' do not match.")
-    if b.strides[0] != b.itemsize:
-        b = np.ascontiguousarray(b)
+    b = np.require(b, dtype=np.float64, requirements=["ENSUREARRAY", "C_CONTIGUOUS"])
+    Rho = np.require(Rho, dtype=np.float64, requirements=["ENSUREARRAY", "C_CONTIGUOUS"])
     if not prefer_original:
         return _cpp_wrapper.py_norm_cdf_4d_pg(b, Rho)
     else:
