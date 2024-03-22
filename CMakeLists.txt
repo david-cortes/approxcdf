@@ -10,6 +10,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/tvbs.cpp
               ${PROJECT_SOURCE_DIR}/src/genz.cpp
               ${PROJECT_SOURCE_DIR}/src/plackett.cpp
               ${PROJECT_SOURCE_DIR}/src/bhat.cpp
+              ${PROJECT_SOURCE_DIR}/src/bhat_lowdim.cpp
               ${PROJECT_SOURCE_DIR}/src/gge.cpp
               ${PROJECT_SOURCE_DIR}/src/other.cpp
               ${PROJECT_SOURCE_DIR}/src/stdnorm.cpp
