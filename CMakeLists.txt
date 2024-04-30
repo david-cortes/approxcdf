@@ -20,7 +20,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/tvbs.cpp
 set(BUILD_SHARED_LIBS True)
 add_library(approxcdf SHARED ${SRC_FILES})
 target_include_directories(approxcdf PRIVATE ${PROJECT_SOURCE_DIR}/src)
-set_target_properties(approxcdf PROPERTIES PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/include/approxcdf.h")
+set_target_properties(approxcdf PROPERTIES PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/include/approxcdf.h" SOVERSION 0 VERSION ${PROJECT_VERSION})
 add_compile_definitions(APPROXCDF_COMPILE_TIME)
 
 ## set to OFF to export all symbols
