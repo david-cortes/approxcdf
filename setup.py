@@ -280,7 +280,6 @@ setup(
                                 ("FOR_PYTHON", None),
                                 ("NDEBUG", None),
                                 ("CYTHON_EXTERN_C", 'extern "C"'),
-                                ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")
                             ]
                         )]
 )
