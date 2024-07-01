@@ -18,6 +18,10 @@ def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, i
     This could be seen as a much faster version of ``scipy.stats.multivariate_normal.cdf``, but
     less precise.
 
+    Note
+    ----
+    This function does not handle cases in which one or more of the bounds is/are infinite.
+
     Notes
     -----
     The method used for the calculation will depend on the dimensionality (number of variables)
@@ -55,6 +59,8 @@ def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, i
     ----------
     b : array(n,)
         Thresholds for the calculation (upper bound on the variables for which the CDF is to be calculated).
+
+        Note that infinites are not supported.
     Cov : array(n, n)
         Covariance matrix. If passing ``is_standardized=True``, will assume that it is a correlation matrix.
         Being a covariance or correlation matrix, should have a non-negative determinant.
@@ -121,6 +127,8 @@ def mvn_cdf(b: np.ndarray, Cov: np.ndarray, mean: Optional[np.ndarray] = None, i
 
     if np.any(np.isnan(b)) or np.any(np.isnan(Cov)):
         raise ValueError("Cannot pass missing values in parameters.")
+    if np.any(np.isinf(b)) or np.any(np.isinf(Cov)):
+        raise ValueError("Cannot pass infinite values in parameters.")
 
     return _cpp_wrapper.py_norm_cdf_tvbs(b, mean, Cov, ld_Cov, is_standardized, logp)
 

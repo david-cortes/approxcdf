@@ -12,7 +12,9 @@ NULL
 #' 
 #' This could be seen as a much faster version of the function `pmvnorm` in the `mvtnorm` package, but
 #' less precise and supporting only the `upper` bounds argument.
-#' @details The method used for the calculation will depend on the dimensionality (number of variables)
+#' @details Note that this function does not handle cases in which one or more of the bounds is/are infinite.
+#' 
+#' The method used for the calculation will depend on the dimensionality (number of variables)
 #' of the problem:
 #' \itemize{
 #' \item For \eqn{n \geq 5}, it will use the TVBS method (two-variate bivariate screening), which makes
@@ -62,6 +64,8 @@ NULL
 #' Advances in Numerical Methods and Applications (1994): 120-126.
 #' }
 #' @param q Thresholds for the calculation (upper bound on the variables for which the CDF is to be calculated).
+#' 
+#' Note that infinites are not supported.
 #' @param Cov Covariance matrix. If passing `is_standardized=TRUE`, will assume that it is a correlation matrix.
 #' Being a covariance or correlation matrix, should have a non-negative determinant.
 #' @param mean Means (expected values) of each variable. If passing `NULL`, will assume that all means are zero.
@@ -125,6 +129,9 @@ pmvn <- function(q, Cov, mean = NULL, is_standardized = FALSE, log.p = FALSE) {
     }
     if (anyNA(q) || anyNA(Cov)) {
         stop("Cannot pass missing values in parameters.")
+    }
+    if (any(is.infinite(q)) || any(is.infinite(Cov))) {
+        stop("Cannot pass infinite values in parameters.")
     }
 
     return(.Call(R_norm_cdf_tvbs, q, Cov, mean, is_standardized, log.p))

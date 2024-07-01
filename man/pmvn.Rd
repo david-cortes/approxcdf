@@ -7,7 +7,9 @@
 pmvn(q, Cov, mean = NULL, is_standardized = FALSE, log.p = FALSE)
 }
 \arguments{
-\item{q}{Thresholds for the calculation (upper bound on the variables for which the CDF is to be calculated).}
+\item{q}{Thresholds for the calculation (upper bound on the variables for which the CDF is to be calculated).
+
+Note that infinites are not supported.}
 
 \item{Cov}{Covariance matrix. If passing `is_standardized=TRUE`, will assume that it is a correlation matrix.
 Being a covariance or correlation matrix, should have a non-negative determinant.}
@@ -43,6 +45,8 @@ This could be seen as a much faster version of the function `pmvnorm` in the `mv
 less precise and supporting only the `upper` bounds argument.
 }
 \details{
+Note that this function does not handle cases in which one or more of the bounds is/are infinite.
+
 The method used for the calculation will depend on the dimensionality (number of variables)
 of the problem:
 \itemize{
