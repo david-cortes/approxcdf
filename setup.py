@@ -5,6 +5,7 @@ import numpy as np
 import sys, os, subprocess
 import warnings
 from os import environ
+import tempfile
 
 found_omp = True
 def set_omp_false():
@@ -182,7 +183,7 @@ class build_ext_subclass( build_ext ):
             if not isinstance(comm, list):
                 comm = [comm]
             print("--- Checking compiler support for option '%s'" % " ".join(comm))
-            fname = "approxcdf_compiler_testing.cpp"
+            fname = os.path.join(tempfile.gettempdir(), "approxcdf_compiler_testing.cpp")
             with open(fname, "w") as ftest:
                 ftest.write(u"int main(int argc, char**argv) {return 0;}\n")
             try:
@@ -222,7 +223,7 @@ class build_ext_subclass( build_ext ):
             if not hasattr(self.compiler, "compiler_cxx"):
                 return None
             print("--- Checking compiler support for '__restrict' qualifier")
-            fname = "approxcdf_compiler_testing.cpp"
+            fname = os.path.join(tempfile.gettempdir(), "approxcdf_compiler_testing.cpp")
             with open(fname, "w") as ftest:
                 ftest.write(u"int main(int argc, char**argv) {return 0;}\n")
             try:
