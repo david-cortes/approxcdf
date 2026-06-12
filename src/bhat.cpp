@@ -309,10 +309,13 @@ double norm_cdf_4d_bhat(const double x[4], const double rho[6])
     }
 
     
-    /* Note: for very low determinants, Plackett's original method tends to give better results */
-    if (determinant4by4tri(rho) <= 1e-3) {
-        return norm_cdf_4d_pg7(x, rho);
-    }
+    /*
+    Note: for very low determinants, Plackett's original method tends to give better results,
+    but it's not clear when it starts being more precise.
+    */
+    // if (determinant4by4tri(rho) <= 1e-8) {
+    //     return norm_cdf_4d_pg7(x, rho);
+    // }
 
     /* Note: the author recommends sorting variables in descending order of
        absicae, saying that it doesn't make much of a difference, but from
