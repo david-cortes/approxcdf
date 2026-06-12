@@ -426,9 +426,10 @@ double norm_cdf_4d_bhat(const double x[4], const double rho[6])
         std::swap(rho_ordered[1], rho_ordered[2]);
         std::swap(rho_ordered[3], rho_ordered[4]);
     }
-    if (ex4 <= -5.) {
-        return norm_cdf_4d_pg(x_ordered, rho_ordered);
-    }
+    /* TODO: find a good threshold to make the switch here */
+    // if (ex4 <= -5.) {
+    //     return norm_cdf_4d_pg(x_ordered, rho_ordered);
+    // }
     return norm_cdf_4d_bhat_internal(x_ordered, rho_ordered);
 
     /* This is faster than TG and gives roughly the same results */
